@@ -1,8 +1,8 @@
 # Data folders
 data/
 outputs/
-brats_preprocessed.zip
-brats_preprocessed.zip/
+brats_processed.zip
+brats_processed.zip/
 
 # Image files
 *.png
