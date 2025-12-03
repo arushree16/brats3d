@@ -8,7 +8,6 @@ import numpy as np
 
 import torch
 from torch import nn, optim
-from torch.utils.tensorboard import SummaryWriter
 from tqdm import tqdm
 
 # Ensure src is importable
@@ -17,7 +16,20 @@ sys.path.append(str(Path(__file__).resolve().parent / "src"))
 from unet3d import UNet3D
 from losses import DiceCELoss
 from dataset_torchio import make_loaders  # expects this module in src/
-# dataset_torchio.make_loaders(preproc_folder, batch_size=1, ...) returns train_loader, val_loader
+
+# TensorBoard: optional import
+writer = None
+def init_tensorboard(log_dir, enable):
+    global writer
+    if enable:
+        try:
+            from torch.utils.tensorboard import SummaryWriter
+            writer = SummaryWriter(log_dir=log_dir)
+        except Exception as e:
+            print(f"TensorBoard disabled due to import error: {e}")
+            writer = None
+    else:
+        writer = None
 
 def seed_everything(seed=42):
     random.seed(seed)
@@ -131,6 +143,7 @@ def parse_args():
     p.add_argument('--amp', action='store_true', help='use mixed precision')
     p.add_argument('--seed', type=int, default=42)
     p.add_argument('--smoke', action='store_true', help='quick smoke test: 1 epoch, small subset')
+    p.add_argument('--no_tensorboard', action='store_true', help='disable TensorBoard logging')
     return p.parse_args()
 
 def main():
@@ -138,7 +151,7 @@ def main():
     seed_everything(args.seed)
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
     Path(args.outdir).mkdir(parents=True, exist_ok=True)
-    writer = SummaryWriter(log_dir=os.path.join(args.outdir, 'tb'))
+    init_tensorboard(os.path.join(args.outdir, 'tb'), not args.no_tensorboard)
 
     # Make data loaders (uses dataset_torchio.make_loaders)
     train_loader, val_loader = make_loaders(
@@ -181,7 +194,8 @@ def main():
             'val_loss': val_loss
         }, is_best, args.outdir)
 
-    writer.close()
+    if writer is not None:
+        writer.close()
     print("Training finished in", time.time() - start_time)
 
 if __name__ == '__main__':
