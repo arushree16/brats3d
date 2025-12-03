@@ -144,6 +144,7 @@ def parse_args():
     p.add_argument('--seed', type=int, default=42)
     p.add_argument('--smoke', action='store_true', help='quick smoke test: 1 epoch, small subset')
     p.add_argument('--no_tensorboard', action='store_true', help='disable TensorBoard logging')
+    p.add_argument('--scheduler', type=str, default='cosine', choices=['none', 'cosine', 'step'], help='LR scheduler')
     return p.parse_args()
 
 def main():
@@ -172,7 +173,16 @@ def main():
     model = model.to(device)
 
     optimizer = optim.Adam(model.parameters(), lr=args.lr)
-    loss_fn = DiceCELoss(weight_ce=1.0, weight_dice=1.0)
+    # Class-balanced weights: inverse frequency for BraTS (background=0, tumor-core=1, edema=2)
+    class_weights = torch.tensor([0.1, 1.0, 1.0]).to(device)
+    loss_fn = DiceCELoss(weight_ce=1.0, weight_dice=1.0, class_weights=class_weights)
+
+    # Scheduler
+    scheduler = None
+    if args.scheduler == 'cosine':
+        scheduler = optim.lr_scheduler.CosineAnnealingLR(optimizer, T_max=args.epochs)
+    elif args.scheduler == 'step':
+        scheduler = optim.lr_scheduler.StepLR(optimizer, step_size=args.epochs//3, gamma=0.1)
 
     scaler = torch.cuda.amp.GradScaler() if (args.amp and torch.cuda.is_available()) else None
 
@@ -184,6 +194,11 @@ def main():
         train_loss = train_one_epoch(model, train_loader, optimizer, scaler, device, loss_fn, epoch, writer)
         val_loss, val_dices = validate(model, val_loader, device, loss_fn, epoch, writer)
         print(f"Epoch {epoch}: train_loss={train_loss:.4f} val_loss={val_loss:.4f} val_dices={val_dices}")
+
+        if scheduler is not None:
+            scheduler.step()
+            if writer is not None:
+                writer.add_scalar('train/lr', scheduler.get_last_lr()[0], epoch)
 
         is_best = val_loss < best_val
         best_val = min(val_loss, best_val)

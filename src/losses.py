@@ -33,9 +33,12 @@ class DiceLoss(nn.Module):
         return loss
 
 class DiceCELoss(nn.Module):
-    def __init__(self, weight_ce=1.0, weight_dice=1.0, ignore_index=-100):
+    def __init__(self, weight_ce=1.0, weight_dice=1.0, ignore_index=-100, class_weights=None):
         super().__init__()
-        self.ce = nn.CrossEntropyLoss(ignore_index=ignore_index)
+        if class_weights is not None:
+            self.ce = nn.CrossEntropyLoss(weight=class_weights, ignore_index=ignore_index)
+        else:
+            self.ce = nn.CrossEntropyLoss(ignore_index=ignore_index)
         self.dice = DiceLoss()
         self.w_ce = weight_ce
         self.w_dice = weight_dice
