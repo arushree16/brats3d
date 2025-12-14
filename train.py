@@ -145,6 +145,7 @@ def parse_args():
     p.add_argument('--smoke', action='store_true', help='quick smoke test: 1 epoch, small subset')
     p.add_argument('--no_tensorboard', action='store_true', help='disable TensorBoard logging')
     p.add_argument('--scheduler', type=str, default='cosine', choices=['none', 'cosine', 'step'], help='LR scheduler')
+    p.add_argument('--attention', type=str, default='none', choices=['none', 'se', 'cbam'], help='attention mechanism type')
     return p.parse_args()
 
 def main():
@@ -169,8 +170,11 @@ def main():
         print("WARNING: --max_batches option: not guaranteed to limit dataset size if make_loaders changed.")
         # Could implement custom sampler; for now user may use preprocess --max to create small set.
 
-    model = UNet3D(in_channels=4, base_filters=16, num_classes=3)  # smaller base_filters for speed
+    model = UNet3D(in_channels=4, base_filters=16, num_classes=3, attention_type=args.attention)  # smaller base_filters for speed
     model = model.to(device)
+    
+    print(f"Training model with attention: {args.attention}")
+    print(f"Model parameters: {sum(p.numel() for p in model.parameters()):,}")
 
     optimizer = optim.Adam(model.parameters(), lr=args.lr)
     # Class-balanced weights: inverse frequency for BraTS (background=0, tumor-core=1, edema=2)

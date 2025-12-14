@@ -1,10 +1,11 @@
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
+from attention import CBAM3D, SEBlock3D
 
-# Basic conv block
+# Basic conv block with attention support
 class ConvBlock(nn.Module):
-    def __init__(self, in_ch, out_ch, norm=True):
+    def __init__(self, in_ch, out_ch, norm=True, attention_type='none'):
         super().__init__()
         layers = [
             nn.Conv3d(in_ch, out_ch, kernel_size=3, padding=1, bias=False),
@@ -19,15 +20,25 @@ class ConvBlock(nn.Module):
         if norm:
             layers.insert(-1, nn.BatchNorm3d(out_ch))
         self.block = nn.Sequential(*layers)
+        
+        # Add attention mechanism
+        if attention_type == 'cbam':
+            self.attn = CBAM3D(out_ch)
+        elif attention_type == 'se':
+            self.attn = SEBlock3D(out_ch)
+        else:
+            self.attn = nn.Identity()
 
     def forward(self, x):
-        return self.block(x)
+        x = self.block(x)
+        x = self.attn(x)
+        return x
 
 class Down(nn.Module):
-    def __init__(self, in_ch, out_ch):
+    def __init__(self, in_ch, out_ch, attention_type='none'):
         super().__init__()
         self.pool = nn.MaxPool3d(2)
-        self.conv = ConvBlock(in_ch, out_ch)
+        self.conv = ConvBlock(in_ch, out_ch, attention_type=attention_type)
 
     def forward(self, x):
         x = self.pool(x)
@@ -35,10 +46,10 @@ class Down(nn.Module):
         return x
 
 class Up(nn.Module):
-    def __init__(self, in_ch, out_ch, trilinear=True):
+    def __init__(self, in_ch, out_ch, trilinear=True, attention_type='none'):
         super().__init__()
         self.up = nn.ConvTranspose3d(in_ch, in_ch//2, kernel_size=2, stride=2)
-        self.conv = ConvBlock(in_ch, out_ch)
+        self.conv = ConvBlock(in_ch, out_ch, attention_type=attention_type)
 
     def forward(self, x1, x2):
         x1 = self.up(x1)
@@ -53,23 +64,25 @@ class Up(nn.Module):
         return self.conv(x)
 
 class UNet3D(nn.Module):
-    def __init__(self, in_channels=4, base_filters=32, num_classes=3):
+    def __init__(self, in_channels=4, base_filters=32, num_classes=3, attention_type='none'):
         super().__init__()
         f = base_filters
+        self.attention_type = attention_type
+        
         # Encoder
-        self.inc = ConvBlock(in_channels, f)
-        self.down1 = Down(f, f*2)
-        self.down2 = Down(f*2, f*4)
-        self.down3 = Down(f*4, f*8)
+        self.inc = ConvBlock(in_channels, f, attention_type=attention_type)
+        self.down1 = Down(f, f*2, attention_type=attention_type)
+        self.down2 = Down(f*2, f*4, attention_type=attention_type)
+        self.down3 = Down(f*4, f*8, attention_type=attention_type)
 
         # Bottleneck
-        self.bottleneck = ConvBlock(f*8, f*16)
+        self.bottleneck = ConvBlock(f*8, f*16, attention_type=attention_type)
 
         # Decoder
-        self.up3 = Up(f*16, f*8)
-        self.up2 = Up(f*8, f*4)
-        self.up1 = Up(f*4, f*2)
-        self.up0 = Up(f*2, f)
+        self.up3 = Up(f*16, f*8, attention_type=attention_type)
+        self.up2 = Up(f*8, f*4, attention_type=attention_type)
+        self.up1 = Up(f*4, f*2, attention_type=attention_type)
+        self.up0 = Up(f*2, f, attention_type=attention_type)
 
         # final conv seg head
         self.outc = nn.Conv3d(f, num_classes, kernel_size=1)
