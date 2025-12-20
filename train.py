@@ -113,6 +113,7 @@ def validate(model, loader, device, loss_fn, epoch, writer=None):
         for i, (images, masks) in enumerate(pbar):
             images = images.to(device)
             masks = masks.to(device)
+            masks = preprocess_mask(masks)
             
             logits = model(images)
             loss = loss_fn(logits, masks)
