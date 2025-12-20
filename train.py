@@ -38,18 +38,20 @@ def seed_everything(seed=42):
     torch.manual_seed(seed)
     torch.cuda.manual_seed_all(seed)
 
-def remap_mask(mask):
+def preprocess_mask(mask):
     """
-    map raw BraTS labels {0,1,2,4} to {0,1,2}
+    Convert BraTS segmentation labels to 3-class format:
     - 0 -> 0 (background)
-    - 1 or 4 -> 1 (tumor-core)
-    - 2 -> 2 (edema)
+    - 1 -> 1 (tumor-core)
+    - 2 -> 2 (edema)  
+    - 4 -> 1 (tumor-core)
     mask: tensor [B, D, H, W]
     """
     mask_np = mask.clone()
-    mask_np[mask == 4] = 1
-    mask_np[mask == 2] = 2
-    mask_np[mask > 2] = 2  # safety
+    # Convert BraTS labels to 3-class format
+    mask_np[mask == 4] = 1  # enhancing tumor -> tumor core
+    # Values 0, 1, 2 are already correct
+    mask_np[mask_np > 2] = 2  # safety: any remaining values > 2 -> edema
     return mask_np.long()
 
 def compute_dice_per_class(logits, target, eps=1e-6):
