@@ -69,20 +69,28 @@ class UNet3D(nn.Module):
         f = base_filters
         self.attention_type = attention_type
         
+        # Determine attention placement based on attention_type
+        if attention_type == 'hybrid':
+            enc_attn = 'se'
+            bottleneck_attn = 'cbam'
+            dec_attn = 'none'
+        else:  # 'none', 'se', 'cbam', or any other
+            enc_attn = dec_attn = bottleneck_attn = attention_type
+        
         # Encoder
-        self.inc = ConvBlock(in_channels, f, attention_type=attention_type)
-        self.down1 = Down(f, f*2, attention_type=attention_type)
-        self.down2 = Down(f*2, f*4, attention_type=attention_type)
-        self.down3 = Down(f*4, f*8, attention_type=attention_type)
+        self.inc = ConvBlock(in_channels, f, attention_type=enc_attn)
+        self.down1 = Down(f, f*2, attention_type=enc_attn)
+        self.down2 = Down(f*2, f*4, attention_type=enc_attn)
+        self.down3 = Down(f*4, f*8, attention_type=enc_attn)
 
         # Bottleneck
-        self.bottleneck = ConvBlock(f*8, f*16, attention_type=attention_type)
+        self.bottleneck = ConvBlock(f*8, f*16, attention_type=bottleneck_attn)
 
         # Decoder
-        self.up3 = Up(f*16, f*8, attention_type=attention_type)
-        self.up2 = Up(f*8, f*4, attention_type=attention_type)
-        self.up1 = Up(f*4, f*2, attention_type=attention_type)
-        self.up0 = Up(f*2, f, attention_type=attention_type)
+        self.up3 = Up(f*16, f*8, attention_type=dec_attn)
+        self.up2 = Up(f*8, f*4, attention_type=dec_attn)
+        self.up1 = Up(f*4, f*2, attention_type=dec_attn)
+        self.up0 = Up(f*2, f, attention_type=dec_attn)
 
         # final conv seg head
         self.outc = nn.Conv3d(f, num_classes, kernel_size=1)

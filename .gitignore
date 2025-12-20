@@ -61,4 +61,4 @@ tb/
 
 # Temporary files
 *.tmp
-*.temp
+*.temp*.pdf

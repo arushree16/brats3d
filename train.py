@@ -16,6 +16,7 @@ sys.path.append(str(Path(__file__).resolve().parent / "src"))
 from unet3d import UNet3D
 from losses import DiceCELoss
 from dataset_torchio import make_loaders  # expects this module in src/
+from metrics import compute_dice_per_class, compute_hd95_per_class
 
 # TensorBoard: optional import
 writer = None
@@ -104,32 +105,43 @@ def validate(model, loader, device, loss_fn, epoch, writer=None):
     model.eval()
     running_loss = 0.0
     dices_accum = []
+    hd95_accum = []
     pbar = tqdm(loader, desc=f"Val E{epoch}")
     with torch.no_grad():
         for i, (images, masks) in enumerate(pbar):
-            images = images.to(device, dtype=torch.float32)
-            masks = masks.to(device, dtype=torch.long)
-            masks = remap_mask(masks)
-
+            images = images.to(device)
+            masks = masks.to(device)
+            
             logits = model(images)
             loss = loss_fn(logits, masks)
             running_loss += loss.item()
+            
             dices = compute_dice_per_class(logits, masks)
+            hd95_scores = compute_hd95_per_class(logits, masks)
+            
             dices_accum.append(dices)
+            hd95_accum.append(hd95_scores)
             pbar.set_postfix(loss=running_loss / (i+1))
 
     avg_loss = running_loss / len(loader)
     # compute mean dice across dataset for each class
     dices_arr = np.array(dices_accum)
+    hd95_arr = np.array(hd95_accum)
+    
     if dices_arr.size == 0:
         mean_dices = [0.0, 0.0]
+        mean_hd95 = [0.0, 0.0]
     else:
         mean_dices = dices_arr.mean(axis=0).tolist()
+        mean_hd95 = hd95_arr.mean(axis=0).tolist()
+        
     if writer is not None:
         writer.add_scalar('val/loss', avg_loss, epoch)
         writer.add_scalar('val/dice_class1', mean_dices[0], epoch)
         writer.add_scalar('val/dice_class2', mean_dices[1], epoch)
-    return avg_loss, mean_dices
+        writer.add_scalar('val/hd95_class1', mean_hd95[0], epoch)
+        writer.add_scalar('val/hd95_class2', mean_hd95[1], epoch)
+    return avg_loss, mean_dices, mean_hd95
 
 def parse_args():
     p = argparse.ArgumentParser()
@@ -145,7 +157,7 @@ def parse_args():
     p.add_argument('--smoke', action='store_true', help='quick smoke test: 1 epoch, small subset')
     p.add_argument('--no_tensorboard', action='store_true', help='disable TensorBoard logging')
     p.add_argument('--scheduler', type=str, default='cosine', choices=['none', 'cosine', 'step'], help='LR scheduler')
-    p.add_argument('--attention', type=str, default='none', choices=['none', 'se', 'cbam'], help='attention mechanism type')
+    p.add_argument('--attention', type=str, default='none', choices=['none', 'se', 'cbam', 'hybrid'], help='attention mechanism type')
     return p.parse_args()
 
 def main():
@@ -196,8 +208,8 @@ def main():
     epochs = 1 if args.smoke else args.epochs
     for epoch in range(1, epochs+1):
         train_loss = train_one_epoch(model, train_loader, optimizer, scaler, device, loss_fn, epoch, writer)
-        val_loss, val_dices = validate(model, val_loader, device, loss_fn, epoch, writer)
-        print(f"Epoch {epoch}: train_loss={train_loss:.4f} val_loss={val_loss:.4f} val_dices={val_dices}")
+        val_loss, val_dices, val_hd95 = validate(model, val_loader, device, loss_fn, epoch, writer)
+        print(f"Epoch {epoch}: train_loss={train_loss:.4f} val_loss={val_loss:.4f} val_dices={val_dices} val_hd95={val_hd95}")
 
         if scheduler is not None:
             scheduler.step()
