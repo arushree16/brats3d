@@ -82,7 +82,7 @@ def train_one_epoch(model, loader, optimizer, scaler, device, loss_fn, epoch, wr
     for i, (images, masks) in enumerate(pbar):
         images = images.to(device, dtype=torch.float32)
         masks = masks.to(device, dtype=torch.long)
-        masks = remap_mask(masks)
+        masks = preprocess_mask(masks)
 
         optimizer.zero_grad()
         with torch.cuda.amp.autocast(enabled=(scaler is not None)):
