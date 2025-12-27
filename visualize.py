@@ -190,10 +190,8 @@ class BraTSVisualizer:
                 'Model': model_name,
                 'WT Dice': f"{metrics['wt_dice']:.3f}",
                 'TC Dice': f"{metrics['tc_dice']:.3f}",
-                'ET Dice': f"{metrics['et_dice']:.3f}",
                 'WT HD95': f"{metrics['wt_hd95']:.1f}",
-                'TC HD95': f"{metrics['tc_hd95']:.1f}",
-                'ET HD95': f"{metrics['et_hd95']:.1f}"
+                'TC HD95': f"{metrics['tc_hd95']:.1f}"
             })
         
         return results
@@ -260,8 +258,7 @@ def main():
     print("-" * 80)
     for result in metrics_table:
         print(f"{result['Model']:10} | WT: {result['WT Dice']} ({result['WT HD95']}) | "
-              f"TC: {result['TC Dice']} ({result['TC HD95']}) | "
-              f"ET: {result['ET Dice']} ({result['ET HD95']})")
+              f"TC: {result['TC Dice']} ({result['TC HD95']})")
     
     print(f"\nVisualizations saved to: {output_dir}")
 

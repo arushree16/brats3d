@@ -144,18 +144,14 @@ def validate(model, loader, device, loss_fn, epoch, writer=None):
     # Compute BraTS region averages
     brats_wt_dice = np.mean([b['wt_dice'] for b in brats_accum])
     brats_tc_dice = np.mean([b['tc_dice'] for b in brats_accum])
-    brats_et_dice = np.mean([b['et_dice'] for b in brats_accum])
     brats_wt_hd95 = np.mean([b['wt_hd95'] for b in brats_accum])
     brats_tc_hd95 = np.mean([b['tc_hd95'] for b in brats_accum])
-    brats_et_hd95 = np.mean([b['et_hd95'] for b in brats_accum])
     
     brats_metrics = {
         'wt_dice': brats_wt_dice,
         'tc_dice': brats_tc_dice, 
-        'et_dice': brats_et_dice,
         'wt_hd95': brats_wt_hd95,
-        'tc_hd95': brats_tc_hd95,
-        'et_hd95': brats_et_hd95
+        'tc_hd95': brats_tc_hd95
     }
         
     if writer is not None:
@@ -168,10 +164,8 @@ def validate(model, loader, device, loss_fn, epoch, writer=None):
         # BraTS region metrics
         writer.add_scalar('val/wt_dice', brats_wt_dice, epoch)
         writer.add_scalar('val/tc_dice', brats_tc_dice, epoch)
-        writer.add_scalar('val/et_dice', brats_et_dice, epoch)
         writer.add_scalar('val/wt_hd95', brats_wt_hd95, epoch)
         writer.add_scalar('val/tc_hd95', brats_tc_hd95, epoch)
-        writer.add_scalar('val/et_hd95', brats_et_hd95, epoch)
     
     return avg_loss, mean_dices, mean_hd95, brats_metrics
 
@@ -243,8 +237,8 @@ def main():
         val_loss, val_dices, val_hd95, val_brats = validate(model, val_loader, device, loss_fn, epoch, writer)
         print(f"Epoch {epoch}: train_loss={train_loss:.4f} val_loss={val_loss:.4f}")
         print(f"  Class Dice: [{val_dices[0]:.3f}, {val_dices[1]:.3f}]")
-        print(f"  BraTS Regions - WT: {val_brats['wt_dice']:.3f}, TC: {val_brats['tc_dice']:.3f}, ET: {val_brats['et_dice']:.3f}")
-        print(f"  HD95 - WT: {val_brats['wt_hd95']:.1f}, TC: {val_brats['tc_hd95']:.1f}, ET: {val_brats['et_hd95']:.1f}")
+        print(f"  BraTS Regions - WT: {val_brats['wt_dice']:.3f}, TC: {val_brats['tc_dice']:.3f}")
+        print(f"  HD95 - WT: {val_brats['wt_hd95']:.1f}, TC: {val_brats['tc_hd95']:.1f}")
 
         if scheduler is not None:
             scheduler.step()

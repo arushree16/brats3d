@@ -62,15 +62,13 @@ def compute_dice_per_class(logits, target, eps=1e-6):
 
 def compute_brats_regions_metrics(logits, target, eps=1e-6):
     """
-    Compute Dice and HD95 for BraTS regions: WT, TC, ET
+    Compute Dice and HD95 for BraTS regions: WT, TC
     
     BraTS regions:
-    - WT (Whole Tumor): labels 1 + 2 + 4 (tumor-core + edema + enhancing)
-    - TC (Tumor Core): labels 1 + 4 (tumor-core + enhancing)  
-    - ET (Enhancing Tumor): label 4 only
+    - WT (Whole Tumor): labels 1 + 2 (tumor-core + edema)
+    - TC (Tumor Core): label 1 (tumor-core)
     
     Our model outputs: 0 (background), 1 (tumor-core), 2 (edema)
-    Need to map back to original BraTS labels for region calculation
     """
     with torch.no_grad():
         probs = torch.softmax(logits, dim=1)
@@ -78,10 +76,7 @@ def compute_brats_regions_metrics(logits, target, eps=1e-6):
         
         # Convert model predictions back to BraTS labels
         # Model: 0=bg, 1=TC, 2=ED
-        # BraTS: 0=bg, 1=TC, 2=ED, 4=ET
         pred_brats = preds.clone()
-        pred_brats[pred_brats == 2] = 2  # edema stays 2
-        # Note: model doesn't predict ET (4) directly, ET is part of TC in our 3-class setup
         
         # Convert target back to BraTS labels  
         target_brats = target.clone()
@@ -89,24 +84,17 @@ def compute_brats_regions_metrics(logits, target, eps=1e-6):
         # Compute regions
         results = {}
         
-        # Whole Tumor (WT): labels 1 + 2 + 4 (in our case: 1 + 2)
+        # Whole Tumor (WT): labels 1 + 2
         pred_wt = (pred_brats == 1) | (pred_brats == 2)
         targ_wt = (target_brats == 1) | (target_brats == 2)
         results['wt_dice'] = compute_dice_binary(pred_wt, targ_wt, eps)
         results['wt_hd95'] = compute_hd95_binary(pred_wt, targ_wt)
         
-        # Tumor Core (TC): labels 1 + 4 (in our case: just 1)
+        # Tumor Core (TC): label 1
         pred_tc = (pred_brats == 1)
         targ_tc = (target_brats == 1)
         results['tc_dice'] = compute_dice_binary(pred_tc, targ_tc, eps)
         results['tc_hd95'] = compute_hd95_binary(pred_tc, targ_tc)
-        
-        # Enhancing Tumor (ET): label 4 only
-        # Since we don't predict ET separately, ET will be 0
-        pred_et = torch.zeros_like(pred_brats, dtype=torch.bool)
-        targ_et = (target_brats == 4)  # Original ET labels
-        results['et_dice'] = compute_dice_binary(pred_et, targ_et, eps)
-        results['et_hd95'] = compute_hd95_binary(pred_et, targ_et)
         
         return results
 
