@@ -1,6 +1,8 @@
 # Data folders
 data/
 outputs/
+results/
+explainability/
 brats_processed.zip
 brats_processed.zip/
 

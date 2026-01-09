@@ -92,8 +92,14 @@ def make_loaders(preproc_folder, batch_size=1, num_workers=2, shuffle_train=True
     from torch.utils.data.sampler import SubsetRandomSampler
     train_sampler = SubsetRandomSampler(train_idx)
     val_sampler = SubsetRandomSampler(val_idx)
+    
+    # Colab optimization: reduce num_workers to prevent overhead
+    optimal_workers = 0 if batch_size == 1 else min(2, num_workers)
+    
     train_loader = DataLoader(ds, batch_size=batch_size, sampler=train_sampler,
-                              num_workers=num_workers, pin_memory=True)
+                              num_workers=optimal_workers, pin_memory=True, 
+                              persistent_workers=True if optimal_workers > 0 else False)
     val_loader = DataLoader(ds, batch_size=batch_size, sampler=val_sampler,
-                            num_workers=num_workers, pin_memory=True)
+                            num_workers=optimal_workers, pin_memory=True,
+                            persistent_workers=True if optimal_workers > 0 else False)
     return train_loader, val_loader
