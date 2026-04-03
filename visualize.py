@@ -215,16 +215,21 @@ def main():
     
     print("Generating visualizations...")
     
-    # Load sample data (you'll need to adapt this to your data loading)
-    # This is a placeholder - replace with actual data loading
-    sample_image = np.random.rand(128, 128, 128, 4)  # Example shape
-    sample_gt = np.random.randint(0, 3, (128, 128, 128))  # Example mask
+    # Load actual validation data
+    from dataset_torchio import make_loaders
+    _, val_loader = make_loaders(data_path, batch_size=1, num_workers=0, shuffle_train=False, augment=False)
+    
+    # Get a sample batch for visualization
+    sample_batch = next(iter(val_loader))
+    sample_image = sample_batch[0].numpy()  # [4, 128, 128, 128]
+    sample_gt = sample_batch[1].numpy()  # [128, 128, 128]
     
     # Get predictions from all models
     pred_masks = []
     model_names = []
     
     for name, model in models.items():
+        print(f"Processing {name} model...")
         # Convert to tensor and predict
         image_tensor = torch.from_numpy(sample_image).permute(3, 0, 1, 2).unsqueeze(0)
         pred = visualizer.predict_batch(model, image_tensor)
