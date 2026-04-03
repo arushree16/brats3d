@@ -10,6 +10,7 @@ import random
 from pathlib import Path
 import argparse
 import numpy as np
+import json
 
 import torch
 from torch import nn, optim
@@ -166,12 +167,30 @@ def main():
 
     best_val = 1e9
     start_time = time.time()
+    
+    # Training log for ablation analysis
+    training_log = {
+        'train_loss': [],
+        'val_loss': [],
+        'wt_dice': [],
+        'tc_dice': [],
+        'wt_hd95': [],
+        'tc_hd95': []
+    }
 
     for epoch in range(1, args.epochs+1):
         train_loss = train_one_epoch(model, train_loader, optimizer, scaler, device, loss_fn, epoch)
         val_loss, val_dices, val_brats = validate(model, val_loader, device, loss_fn, epoch)
         
         scheduler.step()
+        
+        # Log metrics for analysis
+        training_log['train_loss'].append(train_loss)
+        training_log['val_loss'].append(val_loss)
+        training_log['wt_dice'].append(val_brats['wt_dice'])
+        training_log['tc_dice'].append(val_brats['tc_dice'])
+        training_log['wt_hd95'].append(val_brats['wt_hd95'])
+        training_log['tc_hd95'].append(val_brats['tc_hd95'])
         
         print(f"Epoch {epoch}: train={train_loss:.4f} val={val_loss:.4f} lr={scheduler.get_last_lr()[0]:.6f}")
         print(f"  Dice: TC={val_dices[0]:.3f}, ED={val_dices[1]:.3f}")
@@ -187,6 +206,21 @@ def main():
             'val_loss': val_loss,
             'val_brats': val_brats
         }, is_best, args.outdir)
+    
+    # Save training log for ablation analysis
+    training_log.update({
+        'final_wt_dice': val_brats['wt_dice'],
+        'final_tc_dice': val_brats['tc_dice'],
+        'final_wt_hd95': val_brats['wt_hd95'],
+        'final_tc_hd95': val_brats['tc_hd95'],
+        'total_training_time': time.time() - start_time
+    })
+    
+    log_path = Path(args.outdir) / "training_log.json"
+    with open(log_path, 'w') as f:
+        json.dump(training_log, f, indent=2)
+    
+    print(f"Training log saved to {log_path}")
 
     print(f"Training finished in {time.time() - start_time:.1f}s")
 
