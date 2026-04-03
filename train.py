@@ -53,7 +53,7 @@ def train_one_epoch(model, loader, optimizer, scaler, device, loss_fn, epoch):
 
         optimizer.zero_grad(set_to_none=True)  # Faster than zero_grad()
         
-        with torch.cuda.amp.autocast(enabled=(scaler is not None)):
+        with torch.amp.autocast('cuda', enabled=(scaler is not None)):
             logits = model(images)
             loss = loss_fn(logits, masks)
 
@@ -104,10 +104,14 @@ def validate(model, loader, device, loss_fn, epoch):
     
     brats_wt_dice = np.mean([b['wt_dice'] for b in brats_accum])
     brats_tc_dice = np.mean([b['tc_dice'] for b in brats_accum])
+    brats_wt_hd95 = np.mean([b['wt_hd95'] for b in brats_accum])
+    brats_tc_hd95 = np.mean([b['tc_hd95'] for b in brats_accum])
     
     brats_metrics = {
         'wt_dice': brats_wt_dice,
-        'tc_dice': brats_tc_dice
+        'tc_dice': brats_tc_dice,
+        'wt_hd95': brats_wt_hd95,
+        'tc_hd95': brats_tc_hd95
     }
     
     return avg_loss, mean_dices, brats_metrics
@@ -158,7 +162,7 @@ def main():
     # Cosine scheduler for faster convergence
     scheduler = optim.lr_scheduler.CosineAnnealingLR(optimizer, T_max=args.epochs)
     
-    scaler = torch.cuda.amp.GradScaler() if args.amp else None
+    scaler = torch.amp.GradScaler('cuda') if args.amp else None
 
     best_val = 1e9
     start_time = time.time()
@@ -172,6 +176,7 @@ def main():
         print(f"Epoch {epoch}: train={train_loss:.4f} val={val_loss:.4f} lr={scheduler.get_last_lr()[0]:.6f}")
         print(f"  Dice: TC={val_dices[0]:.3f}, ED={val_dices[1]:.3f}")
         print(f"  BraTS: WT={val_brats['wt_dice']:.3f}, TC={val_brats['tc_dice']:.3f}")
+        print(f"  HD95: WT={val_brats['wt_hd95']:.1f}, TC={val_brats['tc_hd95']:.1f}")
 
         is_best = val_loss < best_val
         best_val = min(val_loss, best_val)
