@@ -23,6 +23,13 @@ from unet3d import UNet3D
 from losses import DiceCELoss
 from dataset_torchio import make_loaders
 from metrics import compute_dice_per_class, compute_hd95_per_class, compute_brats_regions_metrics
+try:
+    from metrics_optimized import compute_brats_regions_metrics_fast
+    FAST_HD95 = True
+    print("Using fast HD95 computation")
+except ImportError:
+    FAST_HD95 = False
+    print("Using standard HD95 computation (slower)")
 
 def seed_everything(seed=42):
     random.seed(seed)
@@ -93,7 +100,10 @@ def validate(model, loader, device, loss_fn, epoch):
             running_loss += loss.item()
             
             dices = compute_dice_per_class(logits, masks)
-            brats_metrics = compute_brats_regions_metrics(logits, masks)
+            if FAST_HD95:
+                brats_metrics = compute_brats_regions_metrics_fast(logits, masks)
+            else:
+                brats_metrics = compute_brats_regions_metrics(logits, masks)
             
             dices_accum.append(dices)
             brats_accum.append(brats_metrics)
