@@ -110,7 +110,7 @@ def train_se_encoder_only():
             
             optimizer.zero_grad()
             
-            with autocast():
+            with autocast('cuda'):
                 outputs = model(images)
                 loss = criterion(outputs, masks)
             

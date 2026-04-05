@@ -134,7 +134,7 @@ def main():
     parser.add_argument('--epochs', type=int, default=30)
     parser.add_argument('--batch', type=int, default=2)
     parser.add_argument('--lr', type=float, default=2e-4)  # Higher LR for faster convergence
-    parser.add_argument('--attention', type=str, default='none', choices=['none', 'se', 'cbam', 'hybrid'])
+    parser.add_argument('--attention', type=str, default='none', choices=['none', 'se', 'cbam', 'hybrid', 'se_encoder_only', 'cbam_bottleneck_only'])
     parser.add_argument('--amp', action='store_true', default=True)  # Enable AMP by default
     args = parser.parse_args()
     
