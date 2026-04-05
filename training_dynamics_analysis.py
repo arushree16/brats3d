@@ -7,7 +7,7 @@ def training_dynamics_analysis():
     """Analyze training behavior and stability"""
     
     # Load training logs
-    models = ['baseline', 'se', 'cbam', 'hybrid']
+    models = ['baseline', 'se', 'cbam', 'hybrid', 'se_encoder_only', 'cbam_bottleneck_only']
     logs = {}
     
     for model in models:
@@ -99,7 +99,7 @@ def training_dynamics_analysis():
             wt_dice = log.get('final_wt_dice', 0)
             tc_dice = log.get('final_tc_dice', 0)
             # Estimate parameters
-            params = {'baseline': 5.66e6, 'se': 5.66e6, 'cbam': 5.67e6, 'hybrid': 5.86e6}
+            params = {'baseline': 5.66e6, 'se': 5.66e6, 'cbam': 5.67e6, 'hybrid': 5.86e6, 'se_encoder_only': 5.66e6, 'cbam_bottleneck_only': 5.67e6}
             efficiency = (wt_dice + tc_dice) / (params.get(model, 5.66e6) / 1e6)
             param_efficiency[model] = efficiency
     

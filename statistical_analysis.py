@@ -11,6 +11,7 @@ def statistical_analysis():
     
     # Perform pairwise comparisons
     models = df['Model'].unique()
+    models = ['baseline', 'se', 'cbam', 'hybrid', 'se_encoder_only', 'cbam_bottleneck_only']
     metrics = ['WT_Dice', 'TC_Dice', 'WT_HD95', 'TC_HD95']
     
     fig, axes = plt.subplots(2, 2, figsize=(15, 10))

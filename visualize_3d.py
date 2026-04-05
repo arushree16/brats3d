@@ -26,6 +26,14 @@ class BraTS3DVisualizer:
             'enhancing': 'magenta',
             'whole_tumor': 'lightblue'
         }
+        self.models = {
+            'baseline': 'Baseline',
+            'se': 'SE-UNet',
+            'cbam': 'CBAM-UNet', 
+            'hybrid': 'Hybrid',
+            'se_encoder_only': 'SE-Encoder Only',
+            'cbam_bottleneck_only': 'CBAM-Bottleneck Only'
+        }
         
     def load_model(self, checkpoint_path, attention_type='none'):
         """Load trained model from checkpoint"""

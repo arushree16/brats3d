@@ -74,6 +74,14 @@ class UNet3D(nn.Module):
             enc_attn = 'se'
             bottleneck_attn = 'cbam'
             dec_attn = 'none'
+        elif attention_type == 'se_encoder_only':
+            enc_attn = 'se'
+            bottleneck_attn = 'none'
+            dec_attn = 'none'
+        elif attention_type == 'cbam_bottleneck_only':
+            enc_attn = 'none'
+            bottleneck_attn = 'cbam'
+            dec_attn = 'none'
         else:  # 'none', 'se', 'cbam', or any other
             enc_attn = dec_attn = bottleneck_attn = attention_type
         

@@ -11,38 +11,61 @@ import numpy as np
 from pathlib import Path
 
 def load_all_training_logs():
-    """Load training logs from all 4 completed models"""
+    """Load training logs from all 6 completed models"""
     
-    # Load all models from final results directory
-    logs = {}
-    
-    # Expected model directories
+    # Define model configurations
     model_dirs = {
         'baseline': 'Baseline',
         'se': 'SE-UNet', 
         'cbam': 'CBAM-UNet',
-        'hybrid': 'Hybrid'
+        'hybrid': 'Hybrid',
+        'se_encoder_only': 'SE-Encoder Only',
+        'cbam_bottleneck_only': 'CBAM-Bottleneck Only'
     }
     
-    # Load from final results directory
-    for model_key, model_name in model_dirs.items():
-        model_log = None
-        try:
-            log_path = f'final results/{model_key}/training_log.json'
-            with open(log_path, 'r') as f:
-                model_log = json.load(f)
-            print(f"✅ Loaded {model_name} training log")
-            logs[model_key] = model_log
-        except:
-            print(f"❌ {model_name} log not found at {log_path}")
-            logs[model_key] = None
+    # Try to load from final results directory first
+    logs = {
+        'baseline': None,
+        'se': None,
+        'cbam': None,
+        'hybrid': None,
+        'se_encoder_only': None,
+        'cbam_bottleneck_only': None
+    }
     
-    # Also check Downloads directory for any additional logs
+    # Check final results directory
+    final_results_base = Path('final results')
+    if final_results_base.exists():
+        for model_key, model_name in model_dirs.items():
+            model_dir = final_results_base / model_key
+            if model_dir.exists():
+                log_file = model_dir / 'training_log.json'
+                if log_file.exists():
+                    with open(log_file, 'r') as f:
+                        logs[model_key] = json.load(f)
+                    print(f"✅ Loaded {model_name} from final results/{model_key}")
+    
+    # Check outputs directory as backup
+    outputs_base = Path('outputs')
+    if outputs_base.exists():
+        for model_key, model_name in model_dirs.items():
+            if logs[model_key] is None:  # Only if not already loaded
+                output_dir = outputs_base / model_key.replace('_', '')
+                if output_dir.exists():
+                    log_file = output_dir / 'training_log.json'
+                    if log_file.exists():
+                        with open(log_file, 'r') as f:
+                            logs[model_key] = json.load(f)
+                        print(f"✅ Loaded {model_name} from outputs/{model_key.replace('_', '')}")
+    
+    # Check Downloads directory as final backup
     downloads_logs = {
         'baseline': None,
         'se': None,
         'cbam': None, 
-        'hybrid': None
+        'hybrid': None,
+        'se_encoder_only': None,
+        'cbam_bottleneck_only': None
     }
     
     # Check if there are logs in Downloads that aren't in final results
@@ -115,13 +138,17 @@ def create_convergence_plots(logs):
         'baseline': 'blue', 
         'se': 'orange', 
         'cbam': 'green', 
-        'hybrid': 'red'
+        'hybrid': 'red',
+        'se_encoder_only': 'purple',
+        'cbam_bottleneck_only': 'brown'
     }
     labels = {
         'baseline': 'Baseline', 
         'se': 'SE-UNet', 
         'cbam': 'CBAM-UNet', 
-        'hybrid': 'Hybrid'
+        'hybrid': 'Hybrid',
+        'se_encoder_only': 'SE-Encoder Only',
+        'cbam_bottleneck_only': 'CBAM-Bottleneck Only'
     }
     
     # Training Loss

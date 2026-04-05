@@ -74,7 +74,7 @@ def visualize_attention_comparison():
     
     # Load trained models
     models = {}
-    model_types = ['baseline', 'se', 'cbam', 'hybrid']
+    model_types = ['baseline', 'se', 'cbam', 'hybrid', 'se_encoder_only', 'cbam_bottleneck_only']
     
     for model_type in model_types:
         try:
@@ -102,7 +102,7 @@ def visualize_attention_comparison():
     print(f"📊 Sample image shape: {sample_image.shape}")
     
     # Create attention visualization figure
-    fig, axes = plt.subplots(4, 5, figsize=(20, 16))
+    fig, axes = plt.subplots(6, 5, figsize=(20, 24))
     fig.suptitle('Attention Map Comparison: What Do Different Models Focus On?', 
                  fontsize=16, fontweight='bold')
     
@@ -131,20 +131,30 @@ def visualize_attention_comparison():
     axes[0, 4].axis('off')
     
     # Row labels
-    row_labels = ['Input', 'Baseline', 'SE-UNet', 'CBAM-UNet', 'Hybrid']
+    row_labels = ['Input', 'Baseline', 'SE-UNet', 'CBAM-UNet', 'Hybrid', 'SE-Encoder Only', 'CBAM-Bottleneck Only']
     
     for i, label in enumerate(row_labels):
         axes[i, 0].set_ylabel(label, rotation=90, fontsize=12, fontweight='bold')
     
     # Visualize attention for each model
-    model_configs = {
-        'baseline': {'row': 1, 'color': 'blue', 'title': 'Baseline (No Attention)'},
-        'se': {'row': 2, 'color': 'orange', 'title': 'SE-UNet (Channel Attention)'},
-        'cbam': {'row': 3, 'color': 'green', 'title': 'CBAM-UNet (Channel+Spatial)'},
-        'hybrid': {'row': 4, 'color': 'red', 'title': 'Hybrid (Strategic Placement)'}
+    model_colors = {
+        'baseline': 'blue', 
+        'se': 'orange', 
+        'cbam': 'green', 
+        'hybrid': 'red',
+        'se_encoder_only': 'purple',
+        'cbam_bottleneck_only': 'brown'
+    }
+    labels = {
+        'baseline': 'Baseline', 
+        'se': 'SE-UNet', 
+        'cbam': 'CBAM-UNet', 
+        'hybrid': 'Hybrid',
+        'se_encoder_only': 'SE-Encoder Only',
+        'cbam_bottleneck_only': 'CBAM-Bottleneck Only'
     }
     
-    for model_type, config in model_configs.items():
+    for model_type, config in labels.items():
         if model_type not in models:
             # Skip if model not loaded
             for col in range(5):
@@ -182,6 +192,14 @@ def visualize_attention_comparison():
                                        ha='center', va='center', 
                                        transform=axes[row, col].transAxes)
                 axes[row, col].axis('off')
+    
+    # Hide empty subplots
+    for i in range(6):
+        for j in range(5):
+            if i >= len(row_labels) or (i == 0 and j >= 2):
+                axes[i, j].axis('off')
+            else:
+                axes[i, j].axis('off')
     
     plt.tight_layout()
     plt.savefig('results/attention_comparison.png', dpi=300, bbox_inches='tight')

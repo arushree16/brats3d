@@ -79,8 +79,16 @@ def analyze_convergence_behavior(training_logs):
     
     metrics = ['train_loss', 'val_loss', 'wt_dice', 'tc_dice']
     titles = ['Training Loss', 'Validation Loss', 'WT Dice', 'TC Dice']
-    colors = {'baseline': 'blue', 'se': 'orange', 'cbam': 'green', 'hybrid': 'red'}
-    
+    colors = {'baseline': 'blue', 'se': 'orange', 'cbam': 'green', 'hybrid': 'red', 'se_encoder_only': 'purple', 'cbam_bottleneck_only': 'brown'}
+    models = ['baseline', 'se', 'cbam', 'hybrid', 'se_encoder_only', 'cbam_bottleneck_only']
+    model_names = {
+        'baseline': 'BASELINE',
+        'se': 'SE_UNET',
+        'cbam': 'CBAM_UNET',
+        'hybrid': 'HYBRID',
+        'se_encoder_only': 'SE_ENCODER_ONLY',
+        'cbam_bottleneck_only': 'CBAM_BOTTLENECK_ONLY'
+    }
     for idx, (metric, title) in enumerate(zip(metrics, titles)):
         ax = axes[idx//2, idx%2]
         
