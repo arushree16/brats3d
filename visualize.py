@@ -242,8 +242,8 @@ def main():
     
     for name, model in models.items():
         print(f"   Processing {name}...")
-        # Fix tensor shape: (128, 128, 128, 4) -> (1, 4, 128, 128, 128)
-        image_tensor = torch.from_numpy(sample_image).unsqueeze(0).permute(0, 3, 1, 2)
+        # Fix tensor shape: [4, 128, 128, 128] -> [1, 4, 128, 128, 128]
+        image_tensor = torch.from_numpy(sample_image).unsqueeze(0)
         with torch.no_grad():
             pred = model(image_tensor)
             pred_mask = torch.argmax(pred, dim=1).squeeze().cpu().numpy()

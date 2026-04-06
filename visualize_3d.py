@@ -287,8 +287,8 @@ def main():
     model_names = []
     
     for name, model in models.items():
-        # Fix tensor shape: (128, 128, 128, 4) -> (1, 4, 128, 128, 128)
-        image_tensor = torch.from_numpy(sample_image).unsqueeze(0).permute(0, 3, 1, 2)
+        # Fix tensor shape: [4, 128, 128, 128] -> [1, 4, 128, 128, 128]
+        image_tensor = torch.from_numpy(sample_image).unsqueeze(0)
         pred = visualizer.predict_batch(model, image_tensor)
         pred_masks.append(pred[0])
         model_names.append(name)
