@@ -78,10 +78,10 @@ def visualize_attention_comparison():
     
     for model_type in model_types:
         try:
-            model_path = f'final results/{model_type}/best.pth'
+            model_path = f'/content/drive/MyDrive/brain_tumor_logs/{model_type}/best.pth'
             if Path(model_path).exists():
                 model = UNet3D(in_channels=4, base_filters=32, num_classes=3, attention_type=model_type)
-                checkpoint = torch.load(model_path, map_location='cpu')
+                checkpoint = torch.load(model_path, map_location='cpu', weights_only=False)
                 model.load_state_dict(checkpoint['model_state_dict'])
                 model.eval()
                 models[model_type] = model

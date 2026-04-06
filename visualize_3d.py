@@ -38,7 +38,7 @@ class BraTS3DVisualizer:
     def load_model(self, checkpoint_path, attention_type='none'):
         """Load trained model from checkpoint"""
         model = UNet3D(attention_type=attention_type)
-        checkpoint = torch.load(checkpoint_path, map_location=self.device)
+        checkpoint = torch.load(checkpoint_path, map_location=self.device, weights_only=False)
         model.load_state_dict(checkpoint['model_state_dict'])
         model.to(self.device)
         model.eval()
@@ -260,12 +260,14 @@ def main():
     output_dir = Path("outputs/3d_visualizations")
     output_dir.mkdir(parents=True, exist_ok=True)
     
-    # Load models (example paths)
+    # Load models (Google Drive paths)
     models = {
-        'Baseline': visualizer.load_model("outputs/baseline/best.pth", 'none'),
-        'SE-UNet': visualizer.load_model("outputs/se/best.pth", 'se'),
-        'CBAM-UNet': visualizer.load_model("outputs/cbam/best.pth", 'cbam'),
-        'Hybrid': visualizer.load_model("outputs/hybrid/best.pth", 'hybrid')
+        'Baseline': visualizer.load_model("/content/drive/MyDrive/brain_tumor_logs/baseline/best.pth", 'none'),
+        'SE-UNet': visualizer.load_model("/content/drive/MyDrive/brain_tumor_logs/se/best.pth", 'se'),
+        'CBAM-UNet': visualizer.load_model("/content/drive/MyDrive/brain_tumor_logs/cbam/best.pth", 'cbam'),
+        'Hybrid': visualizer.load_model("/content/drive/MyDrive/brain_tumor_logs/hybrid/best.pth", 'hybrid'),
+        'SE-Encoder Only': visualizer.load_model("/content/drive/MyDrive/brain_tumor_logs/se_encoder_only/best.pth", 'se_encoder_only'),
+        'CBAM-Bottleneck Only': visualizer.load_model("/content/drive/MyDrive/brain_tumor_logs/cbam_bottleneck_only/best.pth", 'cbam_bottleneck_only')
     }
     
     print("Generating 3D visualizations...")
