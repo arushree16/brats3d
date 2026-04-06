@@ -113,18 +113,25 @@ def compute_hd95_binary(pred_mask, targ_mask):
     """Compute HD95 for binary masks"""
     pred_np = pred_mask.cpu().numpy()
     targ_np = targ_mask.cpu().numpy()
-    
+
     batch_hd95 = []
     for b in range(pred_np.shape[0]):
-        if pred_np[b].sum() > 0 and targ_np[b].sum() > 0:
-            pred_points = np.argwhere(pred_np[b] > 0)
-            targ_points = np.argwhere(targ_np[b] > 0)
-            
+        # Squeeze away any extra leading dims so both slices are exactly 3D (D,H,W).
+        # pred/targ may have shape (1,D,H,W) or (D,H,W) depending on how the
+        # caller built the tensors; argwhere on different ndim arrays causes the
+        # "u and v need the same number of columns" ValueError.
+        pred_slice = pred_np[b].squeeze()
+        targ_slice = targ_np[b].squeeze()
+
+        if pred_slice.sum() > 0 and targ_slice.sum() > 0:
+            pred_points = np.argwhere(pred_slice > 0)  # (N, 3)
+            targ_points = np.argwhere(targ_slice > 0)  # (M, 3)
+
             dist1 = directed_hausdorff(pred_points, targ_points)[0]
             dist2 = directed_hausdorff(targ_points, pred_points)[0]
             hd95 = np.percentile([dist1, dist2], 95)
             batch_hd95.append(hd95)
         else:
             batch_hd95.append(0.0)
-    
+
     return np.mean(batch_hd95)
