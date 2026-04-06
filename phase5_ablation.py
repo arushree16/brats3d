@@ -229,8 +229,13 @@ def generate_ablation_report():
     print("🔬 Phase 5: Ablation & Final Validation")
     print("=" * 60)
     
-    # Load training data
-    model_dirs = ['outputs/baseline', 'outputs/se', 'outputs/cbam', 'outputs/hybrid']
+    # Load training data (Google Drive paths)
+    model_dirs = ['/content/drive/MyDrive/brain_tumor_logs/baseline', 
+                  '/content/drive/MyDrive/brain_tumor_logs/se', 
+                  '/content/drive/MyDrive/brain_tumor_logs/cbam', 
+                  '/content/drive/MyDrive/brain_tumor_logs/hybrid',
+                  '/content/drive/MyDrive/brain_tumor_logs/se_encoder_only',
+                  '/content/drive/MyDrive/brain_tumor_logs/cbam_bottleneck_only']
     training_logs = load_training_logs(model_dirs)
     
     # 1. Parameter Efficiency Analysis

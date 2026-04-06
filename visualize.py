@@ -213,12 +213,14 @@ def main():
     output_dir = Path("outputs/visualizations")
     output_dir.mkdir(parents=True, exist_ok=True)
     
-    # Load models (example paths)
+    # Load models (Google Drive paths)
     models = {
-        'Baseline': visualizer.load_model("outputs/baseline/best.pth", 'none'),
-        'SE-UNet': visualizer.load_model("outputs/se/best.pth", 'se'),
-        'CBAM-UNet': visualizer.load_model("outputs/cbam/best.pth", 'cbam'),
-        'Hybrid': visualizer.load_model("outputs/hybrid/best.pth", 'hybrid')
+        'Baseline': visualizer.load_model("/content/drive/MyDrive/brain_tumor_logs/baseline/best.pth", 'none'),
+        'SE-UNet': visualizer.load_model("/content/drive/MyDrive/brain_tumor_logs/se/best.pth", 'se'),
+        'CBAM-UNet': visualizer.load_model("/content/drive/MyDrive/brain_tumor_logs/cbam/best.pth", 'cbam'),
+        'Hybrid': visualizer.load_model("/content/drive/MyDrive/brain_tumor_logs/hybrid/best.pth", 'hybrid'),
+        'SE-Encoder Only': visualizer.load_model("/content/drive/MyDrive/brain_tumor_logs/se_encoder_only/best.pth", 'se_encoder_only'),
+        'CBAM-Bottleneck Only': visualizer.load_model("/content/drive/MyDrive/brain_tumor_logs/cbam_bottleneck_only/best.pth", 'cbam_bottleneck_only')
     }
     
     print("Generating visualizations...")
