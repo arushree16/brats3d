@@ -242,10 +242,12 @@ def main():
     
     for name, model in models.items():
         print(f"   Processing {name}...")
-        # Fix tensor shape: [128, 128, 128, 4] -> [1, 4, 128, 128, 128]
-        image_tensor = torch.from_numpy(sample_image).permute(3, 0, 1, 2).unsqueeze(0)
-        pred = visualizer.predict_batch(model, image_tensor)
-        pred_masks.append(pred[0])
+        # Handle data loader output: [1, 4, 128, 128, 128] (already batched)
+        image_tensor = torch.from_numpy(sample_image)
+        with torch.no_grad():
+            pred = model(image_tensor)
+            pred_mask = torch.argmax(pred, dim=1).squeeze().cpu().numpy()
+        pred_masks.append(pred_mask)
         model_names.append(name)
     
     # Generate comparison visualizations
