@@ -146,16 +146,17 @@ def visualize_attention_comparison():
         'se_encoder_only': 'purple',
         'cbam_bottleneck_only': 'brown'
     }
-    labels = {
-        'baseline': 'Baseline', 
-        'se': 'SE-UNet', 
-        'cbam': 'CBAM-UNet', 
-        'hybrid': 'Hybrid',
-        'se_encoder_only': 'SE-Encoder Only',
-        'cbam_bottleneck_only': 'CBAM-Bottleneck Only'
+    # Model configurations with row assignments
+    model_configs = {
+        'baseline': {'row': 1, 'title': 'Baseline', 'color': 'blue'},
+        'se': {'row': 2, 'title': 'SE-UNet', 'color': 'orange'},
+        'cbam': {'row': 3, 'title': 'CBAM-UNet', 'color': 'green'},
+        'hybrid': {'row': 4, 'title': 'Hybrid', 'color': 'red'},
+        'se_encoder_only': {'row': 5, 'title': 'SE-Encoder Only', 'color': 'purple'},
+        'cbam_bottleneck_only': {'row': 6, 'title': 'CBAM-Bottleneck Only', 'color': 'brown'}
     }
     
-    for model_type, config in labels.items():
+    for model_type, config in model_configs.items():
         if model_type not in models:
             # Skip if model not loaded
             for col in range(5):

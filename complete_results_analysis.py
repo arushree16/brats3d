@@ -58,6 +58,19 @@ def load_all_training_logs():
                             logs[model_key] = json.load(f)
                         print(f"✅ Loaded {model_name} from outputs/{model_key.replace('_', '')}")
     
+    # Check Google Drive paths (for Colab environment)
+    gdrive_base = Path('/content/drive/MyDrive/brain_tumor_logs')
+    if gdrive_base.exists():
+        for model_key, model_name in model_dirs.items():
+            if logs[model_key] is None:  # Only if not already loaded
+                gdrive_dir = gdrive_base / model_key
+                if gdrive_dir.exists():
+                    log_file = gdrive_dir / 'training_log.json'
+                    if log_file.exists():
+                        with open(log_file, 'r') as f:
+                            logs[model_key] = json.load(f)
+                        print(f"✅ Loaded {model_name} from Google Drive/{model_key}")
+    
     # Check Downloads directory as final backup
     downloads_logs = {
         'baseline': None,

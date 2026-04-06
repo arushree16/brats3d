@@ -232,8 +232,15 @@ def main():
     
     # Get a sample batch for visualization
     sample_batch = next(iter(val_loader))
-    sample_image = sample_batch[0].numpy()  # [4, 128, 128, 128]
+    sample_image = sample_batch[0].numpy()  # [1, 4, 128, 128, 128] from data loader
+    if len(sample_image.shape) == 5 and sample_image.shape[0] == 1:
+        sample_image = sample_image[0]  # Remove batch dim -> [4, 128, 128, 128]
     sample_gt = sample_batch[1].numpy()  # [128, 128, 128]
+    if len(sample_gt.shape) == 4 and sample_gt.shape[0] == 1:
+        sample_gt = sample_gt[0]  # Remove batch dim if present
+    
+    print(f"📊 Image shape for visualization: {sample_image.shape}")
+    print(f"📊 Ground truth shape: {sample_gt.shape}")
     
     # Get predictions from all models
     print("🔍 Loading models and generating predictions...")
@@ -255,16 +262,28 @@ def main():
     
     # Individual model comparisons
     for pred_mask, model_name in zip(pred_masks, model_names):
+        # Ensure pred_mask is 3D
+        if len(pred_mask.shape) == 4 and pred_mask.shape[0] == 1:
+            pred_mask = pred_mask[0]
+        
         fig = visualizer.plot_comparison(
-            sample_image[:, :, :, 0],  # Use first modality
+            sample_image[0],  # Use first modality [128, 128, 128]
             sample_gt, pred_mask, slice_idx, model_name,
             save_path=output_dir / f"{model_name.lower()}_comparison.png"
         )
         plt.close(fig)
     
     # Multi-model comparison
+    # Ensure all pred_masks are 3D
+    pred_masks_3d = []
+    for pm in pred_masks:
+        if len(pm.shape) == 4 and pm.shape[0] == 1:
+            pred_masks_3d.append(pm[0])
+        else:
+            pred_masks_3d.append(pm)
+    
     fig = visualizer.create_segmentation_comparison(
-        sample_image[:, :, :, 0], sample_gt, pred_masks, 
+        sample_image[0], sample_gt, pred_masks_3d, 
         model_names, slice_idx, 
         save_path=output_dir / "all_models_comparison.png"
     )
