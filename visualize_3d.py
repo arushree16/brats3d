@@ -31,7 +31,7 @@ class BraTS3DVisualizer:
     # ---------------- MODEL ----------------
     def load_model(self, path, attention_type):
         model = UNet3D(attention_type=attention_type, base_filters=16)
-        ckpt = torch.load(path, map_location=self.device)
+        ckpt = torch.load(path, map_location=self.device, weights_only=False)
         model.load_state_dict(ckpt['model_state_dict'])
         model.to(self.device)
         model.eval()
