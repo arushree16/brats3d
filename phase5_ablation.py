@@ -243,8 +243,8 @@ def create_ablation_summary_table(param_df, perf_df):
         perf_df = pd.DataFrame(perf_data)
     
     # Merge parameter and performance data
-    # Drop duplicate columns from perf_df to avoid _x, _y suffixes
-    perf_cols_to_use = ['Model'] + [col for col in perf_df.columns if col not in param_df.columns or col == 'Model']
+    # Keep only 'Model' + columns that don't already exist in param_df (to avoid _x/_y suffixes)
+    perf_cols_to_use = ['Model'] + [col for col in perf_df.columns if col != 'Model' and col not in param_df.columns]
     perf_df_clean = perf_df[perf_cols_to_use]
     
     summary = param_df.merge(perf_df_clean, on='Model', how='outer')
