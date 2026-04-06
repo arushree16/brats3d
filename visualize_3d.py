@@ -41,7 +41,7 @@ class BraTS3DVisualizer:
     def mask_to_mesh(self, mask):
         """Convert mask → mesh (FIXED)"""
 
-        grid = pv.UniformGrid()
+        grid = pv.ImageData()
         grid.dimensions = np.array(mask.shape) + 1
         grid.spacing = (1, 1, 1)
 
@@ -79,7 +79,7 @@ class BraTS3DVisualizer:
             image = image[0]
 
         # Brain volume
-        grid = pv.UniformGrid()
+        grid = pv.ImageData()
         grid.dimensions = np.array(image.shape) + 1
         grid.cell_data["values"] = image.flatten(order="F")
 

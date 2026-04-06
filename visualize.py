@@ -116,7 +116,15 @@ class BraTSVisualizer:
 
         for pred_mask, model_name in zip(pred_masks, model_names):
             gt_tensor = torch.from_numpy(gt_mask).unsqueeze(0).unsqueeze(0)
-            pred_tensor = torch.from_numpy(pred_mask).unsqueeze(0).unsqueeze(0)
+
+            # compute_brats_regions_metrics expects float logits (B, C, D, H, W),
+            # so convert argmax prediction to one-hot float instead of passing Long indices
+            num_classes = int(pred_mask.max()) + 1
+            num_classes = max(num_classes, 3)  # ensure at least 3 BraTS classes
+            pred_long = torch.from_numpy(pred_mask).long()  # (D, H, W)
+            pred_onehot = torch.zeros(1, num_classes, *pred_long.shape)  # (1, C, D, H, W)
+            pred_onehot.scatter_(1, pred_long.unsqueeze(0).unsqueeze(0), 1)
+            pred_tensor = pred_onehot.float()
 
             metrics = compute_brats_regions_metrics(pred_tensor, gt_tensor)
 
