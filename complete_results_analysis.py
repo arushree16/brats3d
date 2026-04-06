@@ -97,10 +97,36 @@ def analyze_performance_comparison(logs):
         final_wt_hd95 = log.get('final_wt_hd95', 15.0)
         final_tc_hd95 = log.get('final_tc_hd95', 20.0)
         training_time = log.get('total_training_time', 120.0)
-            params = 5860000  # Estimate
-        else:
-            model_type = model_name.upper()
-            params = 0
+        
+        # Use actual parameters from training log, or calculate if missing
+        params = log.get('model_parameters', None)
+        if params is None:
+            # Create model to get actual parameter count
+            try:
+                from unet3d import UNet3D
+                model = UNet3D(attention_type=model_name.lower(), base_filters=16)
+                params = sum(p.numel() for p in model.parameters())
+                print(f"📊 Calculated parameters for {model_name}: {params:,}")
+            except:
+                # Fallback to estimates only if model creation fails
+                model_type = model_name.upper()
+                if 'BASELINE' in model_type:
+                    params = 22600000
+                elif 'SE-ENCODER' in model_type:
+                    params = 22800000
+                elif 'CBAM-BOTTLENECK' in model_type:
+                    params = 22700000
+                elif 'SE-UNet' in model_type:
+                    params = 23200000
+                elif 'CBAM-UNet' in model_type:
+                    params = 23400000
+                elif 'HYBRID' in model_type:
+                    params = 23600000
+                else:
+                    params = 23000000  # Default estimate
+                print(f"⚠️  Using estimated parameters for {model_name}: {params:,}")
+        
+        model_type = model_name.upper()
         
         results.append({
             'Model': model_type,

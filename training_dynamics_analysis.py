@@ -93,15 +93,31 @@ def training_dynamics_analysis():
     
     # 4. Parameter efficiency
     ax4 = axes[1, 0]
+    
+    # Calculate ACTUAL parameters for efficiency analysis
+    from unet3d import UNet3D
+    
+    actual_params = {}
+    for model in models:
+        try:
+            model_obj = UNet3D(attention_type=model, base_filters=16)
+            params = sum(p.numel() for p in model_obj.parameters())
+            actual_params[model] = params
+            print(f"📊 Actual parameters for {model}: {params:,}")
+        except:
+            actual_params[model] = 5.66e6  # Fallback
+            print(f"⚠️  Using fallback parameters for {model}")
+    
     param_efficiency = {}
     for model, log in logs.items():
-        if log:
-            wt_dice = log.get('final_wt_dice', 0)
-            tc_dice = log.get('final_tc_dice', 0)
-            # Estimate parameters
-            params = {'baseline': 5.66e6, 'se': 5.66e6, 'cbam': 5.67e6, 'hybrid': 5.86e6, 'se_encoder_only': 5.66e6, 'cbam_bottleneck_only': 5.67e6}
-            efficiency = (wt_dice + tc_dice) / (params.get(model, 5.66e6) / 1e6)
-            param_efficiency[model] = efficiency
+        if log is None:
+            continue
+        wt_dice = log.get('final_wt_dice', 0)
+        tc_dice = log.get('final_tc_dice', 0)
+        # Use ACTUAL parameters
+        params = actual_params.get(model, 5.66e6)
+        efficiency = (wt_dice + tc_dice) / (params / 1e6)
+        param_efficiency[model] = efficiency
     
     if param_efficiency:
         models_eff = list(param_efficiency.keys())
