@@ -37,7 +37,7 @@ class AttentionHook:
 
 def create_attention_model(model_type):
     """Create model with attention hooks"""
-    model = UNet3D(in_channels=4, base_filters=32, num_classes=3, attention_type=model_type)
+    model = UNet3D(in_channels=4, base_filters=16, num_classes=3, attention_type=model_type)
     
     hooks = []
     hook_manager = AttentionHook()
@@ -80,7 +80,7 @@ def visualize_attention_comparison():
         try:
             model_path = f'/content/drive/MyDrive/brain_tumor_logs/{model_type}/best.pth'
             if Path(model_path).exists():
-                model = UNet3D(in_channels=4, base_filters=32, num_classes=3, attention_type=model_type)
+                model = UNet3D(in_channels=4, base_filters=16, num_classes=3, attention_type=model_type)
                 checkpoint = torch.load(model_path, map_location='cpu', weights_only=False)
                 model.load_state_dict(checkpoint['model_state_dict'])
                 model.eval()
