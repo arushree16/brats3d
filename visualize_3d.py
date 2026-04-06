@@ -8,9 +8,14 @@ import sys
 import numpy as np
 import torch
 import pyvista as pv
+from pyvista import examples
 from pathlib import Path
 import warnings
 warnings.filterwarnings('ignore')
+
+# Fix for Colab environment - PyVista display issues
+import os
+os.environ['PYVISTA_OFF_SCREEN'] = 'true'
 
 # Add src to path
 sys.path.append(str(Path(__file__).resolve().parent / "src"))
@@ -64,7 +69,7 @@ class BraTS3DVisualizer:
     def mask_to_mesh(self, mask, label, spacing=(1.0, 1.0, 1.0)):
         """Convert binary mask to mesh using PyVista"""
         # Create grid
-        grid = pv.UniformGrid()
+        grid = pv.ImageData()
         grid.dimensions = np.array(mask.shape) + 1
         grid.spacing = spacing
         grid.origin = (0, 0, 0)
@@ -108,8 +113,8 @@ class BraTS3DVisualizer:
         else:
             brain_vol = image
             
-        # Create brain mesh for context
-        brain_grid = pv.UniformGrid()
+        # Create 3D brain visualization
+        brain_grid = pv.ImageData()
         brain_grid.dimensions = np.array(brain_vol.shape) + 1
         brain_grid.spacing = (1.0, 1.0, 1.0)
         brain_grid.cell_data["values"] = brain_vol.flatten(order="F")
@@ -173,7 +178,7 @@ class BraTS3DVisualizer:
         else:
             brain_vol = image
             
-        brain_grid = pv.UniformGrid()
+        brain_grid = pv.ImageData()
         brain_grid.dimensions = np.array(brain_vol.shape) + 1
         brain_grid.spacing = (1.0, 1.0, 1.0)
         brain_grid.cell_data["values"] = brain_vol.flatten(order="F")
@@ -221,7 +226,7 @@ class BraTS3DVisualizer:
         else:
             brain_vol = image
             
-        brain_grid = pv.UniformGrid()
+        brain_grid = pv.ImageData()
         brain_grid.dimensions = np.array(brain_vol.shape) + 1
         brain_grid.spacing = (1.0, 1.0, 1.0)
         brain_grid.cell_data["values"] = brain_vol.flatten(order="F")
