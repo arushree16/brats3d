@@ -130,11 +130,12 @@ def visualize_attention_comparison():
     axes[0, 4].set_title('Ground Truth', fontweight='bold')
     axes[0, 4].axis('off')
     
-    # Row labels
-    row_labels = ['Input', 'Baseline', 'SE-UNet', 'CBAM-UNet', 'Hybrid', 'SE-Encoder Only', 'CBAM-Bottleneck Only']
+    # Row labels - fix index bounds
+    row_labels = ['Input', 'Baseline', 'SE-UNet', 'CBAM-UNet', 'Hybrid', 'SE-Encoder Only']
     
     for i, label in enumerate(row_labels):
-        axes[i, 0].set_ylabel(label, rotation=90, fontsize=12, fontweight='bold')
+        if i < len(row_labels):  # Safety check
+            axes[i, 0].set_ylabel(label, rotation=90, fontsize=12, fontweight='bold')
     
     # Visualize attention for each model
     model_colors = {
