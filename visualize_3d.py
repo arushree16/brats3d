@@ -116,6 +116,9 @@ def main():
         'Baseline': vis.load_model("/content/drive/MyDrive/brain_tumor_logs/baseline/best.pth", 'none'),
         'SE': vis.load_model("/content/drive/MyDrive/brain_tumor_logs/se/best.pth", 'se'),
         'CBAM': vis.load_model("/content/drive/MyDrive/brain_tumor_logs/cbam/best.pth", 'cbam'),
+        'Hybrid': vis.load_model("/content/drive/MyDrive/brain_tumor_logs/hybrid/best.pth", 'hybrid'),
+        'SE-Enc': vis.load_model("/content/drive/MyDrive/brain_tumor_logs/se_encoder_only/best.pth", 'se_encoder_only'),
+        'CBAM-Bottleneck': vis.load_model("/content/drive/MyDrive/brain_tumor_logs/cbam_bottleneck_only/best.pth", 'cbam_bottleneck_only'),
     }
 
     # Load REAL data
