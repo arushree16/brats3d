@@ -102,7 +102,7 @@ def visualize_attention_comparison():
     print(f"📊 Sample image shape: {sample_image.shape}")
     
     # Create attention visualization figure
-    fig, axes = plt.subplots(6, 5, figsize=(20, 24))
+    fig, axes = plt.subplots(7, 5, figsize=(20, 28))
     fig.suptitle('Attention Map Comparison: What Do Different Models Focus On?', 
                  fontsize=16, fontweight='bold')
     
@@ -131,7 +131,7 @@ def visualize_attention_comparison():
     axes[0, 4].axis('off')
     
     # Row labels - fix index bounds
-    row_labels = ['Input', 'Baseline', 'SE-UNet', 'CBAM-UNet', 'Hybrid', 'SE-Encoder Only']
+    row_labels = ['Input', 'Baseline', 'SE-UNet', 'CBAM-UNet', 'Hybrid', 'SE-Encoder Only', 'CBAM-Bottleneck Only']
     
     for i, label in enumerate(row_labels):
         if i < len(row_labels):  # Safety check
@@ -195,12 +195,9 @@ def visualize_attention_comparison():
                                        transform=axes[row, col].transAxes)
                 axes[row, col].axis('off')
     
-    # Hide empty subplots
-    for i in range(6):
+    for i in range(7):
         for j in range(5):
-            if i >= len(row_labels) or (i == 0 and j >= 2):
-                axes[i, j].axis('off')
-            else:
+            if i >= len(row_labels):
                 axes[i, j].axis('off')
     
     plt.tight_layout()
